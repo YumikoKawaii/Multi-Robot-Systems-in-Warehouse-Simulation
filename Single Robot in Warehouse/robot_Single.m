@@ -10,6 +10,7 @@ classdef robot_Single < handle
         delivered
         battery
     end
+
     methods
         
         function initial(obj, spn, pos, sp)

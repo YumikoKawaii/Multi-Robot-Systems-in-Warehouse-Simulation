@@ -1,15 +1,12 @@
 %create map
 map = binaryOccupancyMap(120, 150, 1);
 occ = zeros(150, 120);
-design = zeros(150, 120);
 
 shelves = location.empty;
 
 for i = 22:15:128
     for j = 15:18:107
         occ(i:i + 1,j:j + 1) = 1;
-        design(i:i + 1,j:j + 1) = 1;
-        design(i + 1, j) = 1;
         shelves(end + 1).pos = [j (i - 2)];
     end
 end
