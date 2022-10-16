@@ -23,48 +23,9 @@ end
 
 setOccupancy(map, occ);
 
-% create lanes 
-
-outLanes = lane.empty; % horizontal lanes
-for i = 1:4
-    outLanes(end + 1) = lane([18 (31 + (i - 1)*3)],[122 (31 + (i - 1)*3)],0);
-    if i < 3
-        outLanes(i).dir = pi;
-    end
-end
-
-shelfLanes = lane.empty; % vertical lanes
-shelfLanes(1) = lane([18 40],[18 170],pi/2);
-shelfLanes(2) = lane([22 40],[22 170],-pi/2);
-for i = 3:22    
-    if mod(i,4) == 3        
-        shelfLanes(i) = lane([(shelfLanes(i - 1).entrance(1) + 6) 40],[(shelfLanes(i - 1).entrance(1) + 6) 170],-pi/2);        
-    else
-        shelfLanes(i) = lane([(shelfLanes(i - 1).entrance(1) + 4) 40],[(shelfLanes(i - 1).entrance(1) + 4) 170],-pi/2);
-    end
-    if mod(i,4) == 1
-        shelfLanes(i).dir = pi/2;
-    end
-end
-shelfLanes(23) = lane([118 40],[118 170],-pi/2);
-shelfLanes(24) = lane([122 40],[122 170],-pi/2);
-
-adjustLanes = lane.empty;
-for i = 1:3
-    adjustLanes(end + 1) = lane([18 (170 + (i - 1)*3)],[122 (170 + (i - 1)*3)],0);
-    if i == 2 
-        adjustLanes(i).dir = pi;
-    end    
-end
-
-portLanes = portLane.empty;
-for i = 1:6
-    portLanes(end + 1) = portLane([(20 + (i - 1)*18) 176],[(20 + (i - 1)*18) 192],[(30 + (i - 1)*18) 192],[(30 + (i - 1)*18) 176]);
-end
-
 %% create numRobots robots
 numRobots = 30;
-robots = robot.empty;
+robots = Single_robot.empty;
 poses = 10*rand(3,numRobots);
 for i = 1:30
     if i <= 10
@@ -77,7 +38,7 @@ for i = 1:30
         poses(1:3,i) = [(98 + mod(i - 21,5)*4) (15 - 10*(floor((i - 21)/5))) pi/2];
         objects(i + 6,1:3) = [(98 + mod(i - 20,5)*4) (15 - 10*(floor((i - 21)/5))) 2];
     end
-    robots(end + 1) = robot(i,poses(1:3,i), 1, outLanes, shelfLanes, adjustLanes, portLanes);
+    robots(end + 1) = Single_robot(i,poses(1:3,i), 1);
 end
 
 %% create enviroment
@@ -96,7 +57,6 @@ attachObjectDetector(env,1,objectDetector);
 env.plotSensorLines = false;
 
 
-%robots(20).setRoute(ports{2},shelves{48});
 
 checkMap(1:140,1:200) = 0;
 for i = 1:numRobots
@@ -107,27 +67,24 @@ while 1 == 1
     
     for i = 1:numRobots
 
-    if (robots(i).status(3) == 1 || robots(i).route(1) == 0) && robots(i).battery > 0 && robots(i).status(4) ~= 1
-        rI = randi([1 10],1);
-        disp(rI);
-        if rI <= 6
-            setRoute(robots(i),ports{rI},shelves{randi([1 48], 1)});
-        else 
-            robots(i).status(4) = 1;
-        end        
-    end
-    
-
-    if robots(i).route(1) ~= 0
+        if (robots(i).status(3) == 1 || robots(i).package(1) == 0) && robots(i).battery > 0 && robots(i).status(5) ~= 1
+            rI = randi([1 10],1);         
+            disp(rI);
+            if rI <= 6                            
+               setInfo(robots(i),ports{rI},shelves{randi([1 48],1)});
+            else 
+                robots(i).status(5) = 1;
+            end        
+        end
+        
         r = copy(robots(i));
-        selfControl(r);
+        selfMove(r);
         if checkCorrupt(checkMap, r.pos(1), r.pos(2), robots(i).pos(1), robots(i).pos(2)) == 1
             checkMap(robots(i).pos(1), robots(i).pos(2)) = 0;        
-            selfControl(robots(i));
+            selfMove(robots(i));
             checkMap(robots(i).pos(1), robots(i).pos(2)) = 1;
             poses(1:3,i) = robots(i).pos;
-        end
-    end
+        end    
     
     end     
     env(1:numRobots, poses,objects);
@@ -142,8 +99,7 @@ function c = checkCorrupt(map, x, y, a, b)
             if (i == x && j == y) || (i == a && j == b)
                 continue;
             end
-            if map(i,j) == 1
-                disp([i j]);
+            if map(i,j) == 1                
                 c = 0;
                 return;
             end

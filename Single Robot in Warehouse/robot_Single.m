@@ -131,7 +131,7 @@ classdef robot_Single < handle
             end
         end
         
-        function active(obj, viz)
+        function active(obj, viz, objects)
             if obj.status(1) == 0
                 leaveChargingStation(obj)
             elseif obj.status(2) == 0
@@ -143,31 +143,31 @@ classdef robot_Single < handle
             elseif obj.status(4) == 0
                  leaveShelf(obj);
             end                   
-            viz(obj.pose);
+            viz(obj.pose, objects);
         end
 
-        function selfControl(obj, viz, shelves, ports)
+        function selfControl(obj, viz, shelves, ports, objects)
            posPackage = randi([1 10],1);
            if posPackage <= 6
-               setInfo(obj,ports(posPackage).pos,shelves(randi([1 48],1)).pos);
+               setInfo(obj,ports{posPackage},shelves{randi([1 48],1)});
                while obj.status(4) == 0
-                   active(obj, viz)                   
+                   active(obj, viz, objects)                   
                end               
                resetStatus(obj);                              
                if randi([1 5],1) == 1
                    while obj.status(5) == 0 
                        returnChargingStation(obj);
-                       viz(obj.pose);                       
+                       viz(obj.pose, objects);                       
                    end               
                elseif obj.battery == 5
                    while obj.status(5) == 0 
                        returnChargingStation(obj);
-                       viz(obj.pose);                       
+                       viz(obj.pose, objects);                       
                    end
                elseif obj.delivered == 10
                    while obj.status(5) == 0 
                        returnChargingStation(obj);
-                       viz(obj.pose);                       
+                       viz(obj.pose, objects);                       
                    end
                end       
            end

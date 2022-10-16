@@ -1,0 +1,38 @@
+%create map
+map = binaryOccupancyMap(120, 150, 1);
+occ = zeros(150, 120);
+
+objects = [rand(7,3)];
+viz.objectColors = [1, 0, 0; 0, 1, 0; 0, 0, 1];
+
+shelves = {};
+for i = 22:15:128
+    for j = 15:18:107
+        occ(i:i + 1,j:j + 1) = 1;
+        shelves{end + 1} = [j (i - 2)];
+    end
+end
+
+ports = {};
+for i = 1:6
+    ports{end + 1} = [(15 + (i - 1)*18) 145];
+end
+setOccupancy(map, occ);
+
+setOccupancy(map, occ);
+
+% create visualizer
+viz = Visualizer2D;
+viz.robotRadius = 1;
+viz.showTrajectory = false;
+viz.hasObjDetector = true;
+viz.mapName = 'map';
+
+% create robot
+r = robot_Single;
+initial(r,[60 5],[60 5 pi/2],0.2);
+viz(r.pose);
+
+while r.delivered < 10
+   selfControl(r, viz, shelves, ports);     
+end

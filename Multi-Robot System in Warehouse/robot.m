@@ -288,6 +288,7 @@ classdef robot < matlab.mixin.Copyable
         end
         
         function toSpawn(obj)
+            
             if obj.pos(2) > (obj.spawn(2) + 3)
                 obj.pos = obj.pos - obj.speed*[0;1;0];
                 obj.pos(3) = -pi/2;
